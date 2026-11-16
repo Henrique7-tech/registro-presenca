@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presença Eletrônica</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Aviso Rápido / Toast -->
+  <div id="aviso" class="aviso" hidden></div>
+
+  <main class="container">
+
+    <!-- ================= TELA 1: MINHAS LISTAS ================= -->
+    <section id="tela-listas" class="tela" hidden>
+      <header class="cabecalho-tela">
+        <div>
+          <h1>Minhas Listas</h1>
+          <p class="texto-suave">Gerencie suas listas de presença de forma rápida e simples.</p>
+        </div>
+        <a href="#/nova" class="botao botao--primario">+ Nova lista</a>
+      </header>
+
+      <div class="barra-acoes">
+        <input type="search" id="pesquisa-listas" class="campo-texto" placeholder="Pesquisar por nome ou descrição..." autocomplete="off">
+      </div>
+
+      <div id="grade-listas" class="grade-listas">
+        <!-- Os cartões de listas serão injetados via JS aqui -->
+      </div>
+
+      <p id="listas-vazio" class="estado-vazio" hidden></p>
+    </section>
+
+
+    <!-- ================= TELA 2: CRIAR / EDITAR LISTA ================= -->
+    <section id="tela-form-lista" class="tela" hidden>
+      <header class="cabecalho-tela">
+        <h1 id="titulo-form-lista">Nova lista</h1>
+      </header>
+
+      <form id="form-lista" class="formulario" novalidate>
+        <div class="grupo-campo">
+          <label for="lista-nome">Nome do evento ou aula *</label>
+          <input type="text" id="lista-nome" name="nome" class="campo-texto" placeholder="Ex: Reunião de Equipe / Aula de JS">
+          <span class="erro-campo" data-erro="nome"></span>
+        </div>
+
+        <div class="grupo-campo">
+          <label for="lista-data">Data *</label>
+          <input type="date" id="lista-data" name="data" class="campo-texto">
+          <span class="erro-campo" data-erro="data"></span>
+        </div>
+
+        <div class="grupo-campo">
+          <label for="lista-descricao">Descrição (opcional)</label>
+          <textarea id="lista-descricao" name="descricao" class="campo-texto campo-texto--area" placeholder="Detalhes adicionais sobre o encontro..."></textarea>
+          <span class="erro-campo" data-erro="descricao"></span>
+        </div>
+
+        <div class="acoes-formulario">
+          <a href="#/" class="botao botao--secundario">Cancelar</a>
+          <button type="submit" id="botao-salvar-lista" class="botao botao--primario">Salvar lista</button>
+        </div>
+      </form>
+    </section>
+
+
+    <!-- ================= TELA 3: DETALHE DA LISTA / PARTICIPANTES ================= -->
+    <section id="tela-detalhe" class="tela" hidden>
+      <div class="navegacao-voltar">
+        <a href="#/" class="link-voltar">← Voltar para listas</a>
+      </div>
+
+      <header class="cabecalho-detalhe">
+        <div class="detalhe-info">
+          <h1 id="detalhe-nome">Nome da Lista</h1>
+          <div class="detalhe-meta">
+            <span id="detalhe-data">00/00/0000</span>
+            <span class="separador">•</span>
+            <span><strong id="detalhe-total">0</strong> <span id="detalhe-total-rotulo">presentes</span></span>
+          </div>
+          <p id="detalhe-descricao" class="texto-suave" hidden></p>
+        </div>
+      </header>
+
+      <!-- Formulário para registrar presença na hora -->
+      <div class="cartao-registro">
+        <h3>Registrar Presença</h3>
+        <form id="form-participante" class="formulario-linha" novalidate>
+          <div class="grupo-campo flex-1">
+            <input type="text" name="nome" class="campo-texto" placeholder="Nome completo do participante" autocomplete="off">
+            <span class="erro-campo" data-erro="nome"></span>
+          </div>
+          <div class="grupo-campo flex-1">
+            <input type="text" name="identificador" class="campo-texto" placeholder="E-mail ou Matrícula/ID" autocomplete="off">
+            <span class="erro-campo" data-erro="identificador"></span>
+          </div>
+          <button type="submit" class="botao botao--primario">Registrar</button>
+        </form>
+      </div>
+
+      <div class="barra-acoes">
+        <input type="search" id="pesquisa-participantes" class="campo-texto" placeholder="Filtrar participantes presentes..." autocomplete="off">
+      </div>
+
+      <div class="container-tabela">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Identificador / E-mail</th>
+              <th>Data</th>
+              <th>Hora</th>
+              <th class="coluna-acoes">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-participantes">
+            <!-- Linhas inseridas dinamicamente pelo JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <p id="participantes-vazio" class="estado-vazio" hidden></p>
+    </section>
+
+
+    <!-- ================= TELA 4: NÃO ENCONTRADA ================= -->
+    <section id="tela-nao-encontrada" class="tela" hidden>
+      <div class="estado-vazio centralizado">
+        <h2>Página não encontrada</h2>
+        <p class="texto-suave">A lista que você está procurando não existe ou foi excluída.</p>
+        <a href="#/" class="botao botao--primario">Voltar ao início</a>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ================= MODAL: EDITAR PARTICIPANTE ================= -->
+  <div id="modal-participante" class="modal" hidden>
+    <div class="modal__conteudo">
+      <div class="modal__cabecalho">
+        <h2>Editar Participante</h2>
+        <button type="button" class="modal__fechar" data-fechar-modal>&times;</button>
+      </div>
+      <form id="form-editar-participante" novalidate>
+        <div class="grupo-campo">
+          <label>Nome</label>
+          <input type="text" name="nome" class="campo-texto">
+          <span class="erro-campo" data-erro="nome"></span>
+        </div>
+        <div class="grupo-campo">
+          <label>Identificador / E-mail</label>
+          <input type="text" name="identificador" class="campo-texto">
+          <span class="erro-campo" data-erro="identificador"></span>
+        </div>
+        <div class="modal__info-data text-suave">
+          Registrado em: <span id="editar-data"></span> às <span id="editar-hora"></span>
+        </div>
+        <div class="modal__acoes">
+          <button type="button" class="botao botao--secundario" data-fechar-modal>Cancelar</button>
+          <button type="submit" class="botao botao--primario">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: CONFIRMAR EXCLUSÃO ================= -->
+  <div id="modal-confirmar" class="modal" hidden>
+    <div class="modal__conteudo modal__conteudo--pequeno">
+      <div class="modal__cabecalho">
+        <h2>Confirmação</h2>
+        <button type="button" class="modal__fechar" data-fechar-modal>&times;</button>
+      </div>
+      <p id="confirmar-mensagem" class="modal__mensagem">Deseja realmente prosseguir?</p>
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario" data-fechar-modal>Cancelar</button>
+        <button type="button" id="botao-confirmar" class="botao botao--perigo">Sim, excluir</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Scripts do sistema -->
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/validacao.js"></script>
+<script src="js/listas.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

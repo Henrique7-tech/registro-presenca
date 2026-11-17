@@ -14,3 +14,7 @@ Sistema web desenvolvido para o Projeto Integrador com o objetivo de gerenciar e
 - **HTML5:** Estruturação semântica da página e formulários.
 - **CSS3:** Estilização, layout e controle de exibição de componentes.
 - **JavaScript (Vanilla):** Manipulação do DOM, validação de dados e gerenciamento do `localStorage`.
+
+## Protótipo Figma
+
+- https://www.figma.com/design/K3lc1RP09ad7dvyjVcV90G/App---Presen%C3%A7a?node-id=0-1&t=10DsDJKvcXhktYrj-1

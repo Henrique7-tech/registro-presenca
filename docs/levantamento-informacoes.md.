@@ -1,0 +1,70 @@
+# Levantamento de Informações e Especificação de Requisitos
+
+**Projeto:** Registro de Presença Eletrônica
+**Disciplina:** Projeto Integrador  
+**Responsável:** Mariucha Jobim Soriano
+
+---
+
+## 1. Contextualização e Problema
+
+- **Tema:** Registro de Presença Eletrônica — aplicação web simples para criação e gerenciamento digital de listas de presença, eliminando o uso de papéis, pranchetas e planilhas descentralizadas[cite: 2, 3].
+- **Público-alvo:** Professores, organizadores de eventos acadêmicos/corporativos, líderes de equipe e participantes que necessitem registrar presenças de forma rápida[cite: 2].
+- **Escopo técnico (V1):** Aplicação frontend desenvolvida em **HTML5**, **CSS3** e **JavaScript Vanilla**, com persistência de dados no **LocalStorage** do navegador (sem backend ou banco de dados complexo nesta etapa)[cite: 7].
+
+---
+
+## 2. Requisitos Funcionais
+
+| Código | Requisito | Descrição |
+| :--- | :--- | :--- |
+| **RF01** | Listagem de listas | Exibir todas as listas cadastradas ("Minhas listas") com nome, data/horário, contagem atual de presentes e ações (**Abrir**, **Editar**, **Excluir**)[cite: 5, 10]. |
+| **RF02** | Criação de lista | Permitir criar uma nova lista informando nome do evento/aula, data e descrição opcional[cite: 5, 11]. |
+| **RF03** | Edição e exclusão de lista | Permitir editar os dados de uma lista existente ou excluí-la[cite: 5, 10]. |
+| **RF04** | Cadastro de participante | Dentro de uma lista aberta, permitir registrar presença informando **Nome** e **E-mail ou identificador**[cite: 5, 12]. |
+| **RF05** | Registro automático de data/hora | Registrar automaticamente a data e a hora no momento em que a presença é salva[cite: 4, 12, 13]. |
+| **RF06** | Edição de participante | Permitir alterar **Nome** e **E-mail/identificador** de um participante, mantendo a data e a hora originais bloqueadas para alteração[cite: 5, 13]. |
+| **RF07** | Remoção de participante | Permitir excluir individualmente um registro de participante da lista[cite: 5, 12]. |
+| **RF08** | Contagem em tempo real | Atualizar automaticamente a relação de presentes e a contagem total por evento a cada inclusão ou remoção[cite: 5, 12]. |
+
+---
+
+## 3. Requisitos Não Funcionais
+
+- **RNF01 — Persistência local:** Manter listas e participantes salvos no `LocalStorage` do navegador mesmo após recarregar ou fechar a página[cite: 7].
+- **RNF02 — Identidade visual e usabilidade:** Seguir o guia de estilo definido no protótipo (tipografia *DM Sans* e paleta de cores semântica para ações primárias, sucesso e alerta)[cite: 8, 9].
+- **RNF03 — Integridade do registro:** Impedir a edição da data e hora do registro de presença após o lançamento[cite: 8, 13].
+- **RNF04 — Evolução futura:** Estruturar os dados de modo a viabilizar futuramente a migração do `LocalStorage` para um banco de dados mais seguro e robusto[cite: 7, 8].
+
+---
+
+## 4. Estrutura de Dados e Campos
+
+### 4.1. Lista de Presença (Evento/Aula)
+
+| Campo | Tipo | Obrigatório | Observações |
+| :--- | :--- | :--- | :--- |
+| `id` | Identificador único | Sim (automático) | Identifica cada lista no `LocalStorage` para vincular os participantes[cite: 5, 7]. |
+| `nome` | Texto | Sim | Nome do evento ou aula (ex.: *"Aula de Programação Web"*)[cite: 10, 11]. |
+| `data` | Data (`dd/mm/yyyy`) | Sim | Data do evento ou aula informada no cadastro[cite: 11]. |
+| `horario` | Hora (`HH:mm`) | A alinhar com a equipe | Exibido nos cartões da tela *Minhas listas* (ex.: `19:00`); validar se entrará no formulário de cadastro/edição[cite: 10, 11]. |
+| `descricao` | Texto | Não | Campo opcional para local, turma ou observações[cite: 11]. |
+
+### 4.2. Participante (Registro de Presença)
+
+| Campo | Tipo | Obrigatório | Observações |
+| :--- | :--- | :--- | :--- |
+| `id` | Identificador único | Sim (automático) | Identifica cada registro individual dentro da lista[cite: 5]. |
+| `nome` | Texto | Sim | Nome do participante[cite: 5, 12, 13]. |
+| `identificador` | Texto / E-mail | A alinhar com a equipe | E-mail ou identificador do participante[cite: 5, 12, 13]. |
+| `dataRegistro` | Data (`dd/mm/yyyy`) | Sim (automático) | Preenchida no registro e exibida na tabela e na edição (bloqueada para alteração)[cite: 4, 12, 13]. |
+| `horaRegistro` | Hora (`HH:mm`) | Sim (automático) | Preenchida no registro e exibida na tabela e na edição (bloqueada para alteração)[cite: 4, 12, 13]. |
+
+---
+
+## 5. Regras de Negócio
+
+1. **Validação de campos obrigatórios:** Não permitir salvar uma lista sem nome/data nem registrar presença sem os campos obrigatórios preenchidos[cite: 11, 12].
+2. **Data e hora imutáveis na edição:** Na edição de participante, apenas **Nome** e **E-mail/identificador** podem ser alterados; data e hora do registro permanecem bloqueadas[cite: 13].
+3. **Exclusão de lista:** Ao excluir uma lista, os registros de presença pertencentes a ela deixam de compor o conjunto ativo[cite: 5, 10].
+4. **Atualização imediata do contador:** A quantidade de presentes exibida deve ser atualizada em tempo real sempre que um participante for incluído ou removido[cite: 5, 12].

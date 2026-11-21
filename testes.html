@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testes automatizados - Presença</title>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f8fafc; color: #1e293b; }
+    .topo { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .topo a { color: #2563eb; font-weight: 700; text-decoration: none; }
+    .topo span { color: #64748b; font-size: 14px; }
+    .container { max-width: 760px; margin: 0 auto; padding: 32px 16px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .texto-suave { color: #64748b; font-size: 14px; margin: 0; }
+    .resumo { font-weight: 700; margin: 16px 0; }
+    .passou { color: #166534; font-weight: 700; }
+    .falhou { color: #dc2626; font-weight: 700; }
+    .cartao { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: #64748b; padding: 12px; border-bottom: 1px solid #e2e8f0; background: #f1f5f9; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+    tr:last-child td { border-bottom: none; }
+    td:first-child { color: #64748b; width: 40px; }
+    td:last-child { white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <a href="index.html">Presença</a>
+    <span>Testes automatizados</span>
+  </header>
+
+  <main class="container">
+    <h1>Testes automatizados</h1>
+    <p class="texto-suave">Testam as regras de negócio (listas.js, validacao.js, storage.js, utils.js).
+      Usam uma chave separada do LocalStorage, então não apagam os dados reais do app.</p>
+    <p id="resumo" class="resumo"></p>
+    <div class="cartao">
+      <table>
+        <thead><tr><th>#</th><th>Teste</th><th>Resultado</th></tr></thead>
+        <tbody id="resultados"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/validacao.js"></script>
+  <script src="js/listas.js"></script>
+  <script>
+    // Usa uma chave de teste para não mexer nos dados reais
+    Storage.CHAVE = "presenca.testes";
+
+    const testes = [];
+    function teste(descricao, funcao) { testes.push({ descricao, funcao }); }
+    function verificar(condicao, mensagem) { if (!condicao) throw new Error(mensagem || "Falhou"); }
+    function limpar() { localStorage.removeItem(Storage.CHAVE); }
+    function criarListaExemplo() {
+      return Listas.criar({ nome: "Aula de Programação Web", data: "2026-03-12", descricao: "Sala 3" }).item;
+    }
+
+    /* ---------- Listas ---------- */
+    teste("Cadastrar lista com dados válidos", () => {
+      const r = Listas.criar({ nome: "Workshop de UX", data: "2026-03-18", descricao: "" });
+      verificar(r.ok, "Deveria criar");
+      verificar(Listas.todas().length === 1, "Deveria haver 1 lista salva");
+    });
+
+    teste("Não cadastrar lista sem nome", () => {
+      const r = Listas.criar({ nome: "   ", data: "2026-03-18" });
+      verificar(!r.ok && r.erros.nome, "Deveria dar erro no nome");
+      verificar(Listas.todas().length === 0, "Nada deveria ser salvo");
+    });
+
+    teste("Não cadastrar lista sem data", () => {
+      const r = Listas.criar({ nome: "Reunião", data: "" });
+      verificar(!r.ok && r.erros.data, "Deveria dar erro na data");
+    });
+
+    teste("Listar listas ordenadas pela data", () => {
+      Listas.criar({ nome: "Reunião de equipe", data: "2026-03-20" });
+      Listas.criar({ nome: "Aula", data: "2026-03-12" });
+      const nomes = Listas.todas().map((l) => l.nome);
+      verificar(nomes[0] === "Aula" && nomes[1] === "Reunião de equipe", "Ordem errada: " + nomes);
+    });
+
+    teste("Editar nome e data de uma lista", () => {
+      const lista = criarListaExemplo();
+      const r = Listas.atualizar(lista.id, { nome: "Aula de JavaScript", data: "2026-04-01", descricao: "" });
+      verificar(r.ok, "Deveria atualizar");
+      const salva = Listas.buscar(lista.id);
+      verificar(salva.nome === "Aula de JavaScript" && salva.data === "2026-04-01", "Dados não foram alterados");
+    });
+
+    teste("Excluir lista", () => {
+      const lista = criarListaExemplo();
+      verificar(Listas.excluir(lista.id).ok, "Deveria excluir");
+      verificar(Listas.buscar(lista.id) === null, "A lista ainda existe");
+    });
+
+    teste("Pesquisar lista ignorando acentos e maiúsculas", () => {
+      criarListaExemplo();
+      Listas.criar({ nome: "Reunião de equipe", data: "2026-03-20" });
+      const r = Listas.filtrar(Listas.todas(), "REUNIAO");
+      verificar(r.length === 1 && r[0].nome === "Reunião de equipe", "Pesquisa não encontrou");
+    });
+
+    /* ---------- Participantes ---------- */
+    teste("Registrar presença com data e hora automáticas", () => {
+      const lista = criarListaExemplo();
+      const agora = new Date(2026, 2, 12, 19, 2);
+      const r = Listas.adicionarParticipante(lista.id, { nome: "Ana Souza", identificador: "ana@email.com" }, agora);
+      verificar(r.ok, "Deveria registrar");
+      verificar(r.item.data === "12/03/2026" && r.item.hora === "19:02", "Data/hora erradas: " + r.item.data + " " + r.item.hora);
+    });
+
+    teste("Contagem de presentes é atualizada", () => {
+      const lista = criarListaExemplo();
+      Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email.com" });
+      Listas.adicionarParticipante(lista.id, { nome: "Bruno", identificador: "bruno@email.com" });
+      verificar(Listas.buscar(lista.id).participantes.length === 2, "Deveria ter 2 presentes");
+    });
+
+    teste("Não registrar participante sem nome", () => {
+      const lista = criarListaExemplo();
+      const r = Listas.adicionarParticipante(lista.id, { nome: "", identificador: "x@email.com" });
+      verificar(!r.ok && r.erros.nome, "Deveria dar erro no nome");
+    });
+
+    teste("Não registrar e-mail inválido", () => {
+      const lista = criarListaExemplo();
+      const r = Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email" });
+      verificar(!r.ok && r.erros.identificador, "Deveria dar erro no e-mail");
+    });
+
+    teste("Aceitar identificador que não é e-mail (ex.: RA)", () => {
+      const lista = criarListaExemplo();
+      const r = Listas.adicionarParticipante(lista.id, { nome: "Caio", identificador: "RA 123456" });
+      verificar(r.ok, "Deveria aceitar RA");
+    });
+
+    teste("Não registrar o mesmo participante duas vezes na lista", () => {
+      const lista = criarListaExemplo();
+      Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email.com" });
+      const r = Listas.adicionarParticipante(lista.id, { nome: "Ana S.", identificador: "ANA@email.com" });
+      verificar(!r.ok && r.erros.identificador, "Deveria bloquear duplicado");
+    });
+
+    teste("Mesmo participante pode estar em listas diferentes", () => {
+      const a = criarListaExemplo();
+      const b = Listas.criar({ nome: "Workshop", data: "2026-03-18" }).item;
+      Listas.adicionarParticipante(a.id, { nome: "Ana", identificador: "ana@email.com" });
+      verificar(Listas.adicionarParticipante(b.id, { nome: "Ana", identificador: "ana@email.com" }).ok, "Deveria permitir");
+    });
+
+    teste("Editar participante mantém data e hora do registro", () => {
+      const lista = criarListaExemplo();
+      const p = Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email.com" }).item;
+      const r = Listas.atualizarParticipante(lista.id, p.id, { nome: "Ana Souza", identificador: "ana.souza@email.com" });
+      verificar(r.ok, "Deveria atualizar");
+      const salvo = Listas.buscar(lista.id).participantes[0];
+      verificar(salvo.nome === "Ana Souza" && salvo.data === p.data && salvo.hora === p.hora, "Data/hora mudaram");
+    });
+
+    teste("Editar participante sem mudar o e-mail não acusa duplicado", () => {
+      const lista = criarListaExemplo();
+      const p = Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email.com" }).item;
+      verificar(Listas.atualizarParticipante(lista.id, p.id, { nome: "Ana Souza", identificador: "ana@email.com" }).ok, "Não deveria acusar duplicado");
+    });
+
+    teste("Remover participante", () => {
+      const lista = criarListaExemplo();
+      const p = Listas.adicionarParticipante(lista.id, { nome: "Ana", identificador: "ana@email.com" }).item;
+      verificar(Listas.removerParticipante(lista.id, p.id).ok, "Deveria remover");
+      verificar(Listas.buscar(lista.id).participantes.length === 0, "Ainda há participante");
+    });
+
+    teste("Pesquisar participante por nome ou e-mail", () => {
+      const lista = criarListaExemplo();
+      Listas.adicionarParticipante(lista.id, { nome: "Ana Souza", identificador: "ana@email.com" });
+      Listas.adicionarParticipante(lista.id, { nome: "Bruno Lima", identificador: "bruno@email.com" });
+      const participantes = Listas.buscar(lista.id).participantes;
+      verificar(Listas.filtrarParticipantes(participantes, "lima").length === 1, "Busca por nome falhou");
+      verificar(Listas.filtrarParticipantes(participantes, "ana@").length === 1, "Busca por e-mail falhou");
+    });
+
+    /* ---------- Armazenamento ---------- */
+    teste("Dados continuam salvos no LocalStorage (persistência)", () => {
+      criarListaExemplo();
+      const bruto = JSON.parse(localStorage.getItem(Storage.CHAVE));
+      verificar(Array.isArray(bruto) && bruto.length === 1, "Não foi salvo no LocalStorage");
+    });
+
+    teste("Dado corrompido no LocalStorage não quebra o app", () => {
+      localStorage.setItem(Storage.CHAVE, "{isso não é json");
+      verificar(Array.isArray(Listas.todas()) && Listas.todas().length === 0, "Deveria retornar lista vazia");
+    });
+
+    /* ---------- Executa ---------- */
+    const corpo = document.getElementById("resultados");
+    let aprovados = 0;
+    testes.forEach((t, i) => {
+      limpar();
+      let ok = true, erro = "";
+      try { t.funcao(); aprovados++; } catch (e) { ok = false; erro = e.message; }
+      const linha = document.createElement("tr");
+      linha.innerHTML = `<td>${i + 1}</td><td></td><td class="${ok ? "passou" : "falhou"}">${ok ? "✔ Passou" : "✘ Falhou"}</td>`;
+      linha.children[1].textContent = t.descricao + (erro ? " — " + erro : "");
+      corpo.appendChild(linha);
+    });
+    limpar();
+    const resumo = document.getElementById("resumo");
+    resumo.textContent = `${aprovados} de ${testes.length} testes passaram.`;
+    resumo.className = "resumo " + (aprovados === testes.length ? "passou" : "falhou");
+  </script>
+</body>
+</html>

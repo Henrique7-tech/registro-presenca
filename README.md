@@ -3,6 +3,12 @@
 Aplicação web para criar e gerenciar **listas de presença** de eventos, aulas e reuniões, substituindo pranchetas, listas impressas e planilhas soltas.
 Projeto Integrador do 3º semestre, 2ª etapa: *Desenvolvimento da Aplicação Web utilizando Boas Práticas de Desenvolvimento de Software*.
 
+## Acesse a aplicação
+
+**https://henrique7-tech.github.io/registro-presenca/**
+
+A aplicação está publicada no GitHub Pages e abre direto no navegador, sem instalar nada.
+
 ## Integrantes
 
 | Integrante | Atividade |
@@ -14,7 +20,7 @@ Projeto Integrador do 3º semestre, 2ª etapa: *Desenvolvimento da Aplicação W
 | Andrey de Souza Sezario | Testes e documentação |
 | Todos | Testes e documentação |
 
-## Como executar
+## Como executar no computador
 
 1. Baixe o projeto: botão verde **Code → Download ZIP**.
 2. **Extraia** o arquivo ZIP. Não abra o `index.html` de dentro do ZIP, porque as pastas `js` e o `style.css` não são carregados.
